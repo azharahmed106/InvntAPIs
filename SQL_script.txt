@@ -1,0 +1,129 @@
+CREATE TABLE [dbo].[Product]
+(  
+    [ItemID] [bigint] NOT NULL,  
+    [Name] [nvarchar](50) NULL,  
+    [Description] [nvarchar](50) NOT NULL,  
+    [Price] [nvarchar](256) NULL,  
+     
+CONSTRAINT [PK_Product] PRIMARYKEYCLUSTERED  
+(  
+    [ItemID] ASC,  
+    [Name] ASC  
+)WITH (PAD_INDEX=OFF,STATISTICS_NORECOMPUTE=OFF,IGNORE_DUP_KEY=OFF,ALLOW_ROW_LOCKS=ON,ALLOW_PAGE_LOCKS=ON)ON [PRIMARY]  
+)ON [PRIMARY]  
+  
+GO  
+
+
+--------------------------------------------------------------------------
+ALTER PROCEDURE [dbo].[CREATE_Item]  
+
+(  
+     @Name NVarchar(50)  
+    ,@Description NVarchar(50)  
+    ,@Price NVarchar(256)  
+   
+)  
+AS  
+BEGIN  
+   
+    SETNOCOUNTON;  
+
+    BEGINTRY  
+        BEGINTRANSACTION  
+  
+        DECLARE @ItemID Bigint  
+            SET @ItemID =isnull(((SELECTmax(ItemID)FROM [dbo].[Product])+1),'1')  
+  
+
+        INSERT INTO [dbo].[Product]([ItemID],[Name],[Description],[Price])  
+        VALUES (@ItemID, @Name, @Description, @Price)  
+        SELECT 1  
+        COMMITTRANSACTION  
+    ENDTRY  
+    BEGINCATCH  
+            DECLARE @ErrorMessage NVARCHAR(4000),@ErrorSeverity INT,@ErrorState INT;  
+            SELECT @ErrorMessage =ERROR_MESSAGE(),@ErrorSeverity =ERROR_SEVERITY(),@ErrorState =ERROR_STATE();  
+            RAISERROR (@ErrorMessage,@ErrorSeverity,@ErrorState);  
+        ROLLBACKTRANSACTION  
+    ENDCATCH  
+  
+END
+
+-------------------------------------------------------------------------
+ALTER PROCEDURE [dbo].[DELETE_Item]  
+
+      @ItemID BIGINT  
+AS  
+BEGIN  
+ 
+    SETNOCOUNTON;  
+  
+ 
+    BEGINTRY  
+        BEGINTRANSACTION  
+  
+
+        DELETE [dbo].[Product]  
+        WHERE [ItemID] = @ItemID   
+        SELECT 1  
+        COMMITTRANSACTION  
+    ENDTRY  
+    BEGINCATCH  
+            DECLARE @ErrorMessage NVARCHAR(4000),@ErrorSeverity INT,@ErrorState INT;  
+            SELECT @ErrorMessage =ERROR_MESSAGE(),@ErrorSeverity =ERROR_SEVERITY(),@ErrorState =ERROR_STATE();  
+            RAISERROR (@ErrorMessage,@ErrorSeverity,@ErrorState);  
+        ROLLBACKTRANSACTION  
+    ENDCATCH  
+  
+END
+
+-----------------------------------------------------------------------------
+ALTER PROCEDURE [dbo].[UPDATE_Item]  
+  
+     @ItemID BIGINT  
+    ,@Name NVarchar(50)  
+    ,@Description NVarchar(50)  
+    ,@Price NVarchar(256)  
+    
+AS  
+BEGIN  
+ 
+    SETNOCOUNTON;  
+  
+
+    BEGINTRY  
+        BEGINTRANSACTION  
+  
+   
+        UPDATE [dbo].[Product]  
+        SET [Name] = @Name,  
+            [Description] = @Description,  
+            [Price] = @Price 
+        WHERE [ItemID] = @ItemID AND [Name] = @Name  
+        SELECT 1  
+        COMMITTRANSACTION  
+    ENDTRY  
+    BEGINCATCH  
+            DECLARE @ErrorMessage NVARCHAR(4000),@ErrorSeverity INT,@ErrorState INT;  
+            SELECT @ErrorMessage =ERROR_MESSAGE(),@ErrorSeverity =ERROR_SEVERITY(),@ErrorState =ERROR_STATE();  
+            RAISERROR (@ErrorMessage,@ErrorSeverity,@ErrorState);  
+        ROLLBACKTRANSACTION  
+    ENDCATCH  
+  
+END
+
+-------------------------------------------------------------
+ALTER PROCEDURE [dbo].[VIEW_Item]  
+
+    @ItemID BIGINT  
+AS  
+BEGIN  
+
+    SETNOCOUNTON;  
+
+  
+    SELECT * FROM [dbo].[Product]  
+    WHERE [ItemID] = @ItemID   
+END
+-----------------------------------------------------------------
